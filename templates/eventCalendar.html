@@ -1,0 +1,48 @@
+<html>
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+</head>
+<body>
+
+<div class = "container">
+  <div class = "header"><h2>My Header</h2></div>
+  <div class = "menu"><p>Menu</p></div>
+  <div class="content">
+    <div class="calendar">
+      <div class="cal-nav">
+        <a href="{{ url_for('event_calendar', year=prev_year, month=prev_month) }}"><button>&lt;</button></a>
+        <h2>{{ month_name }} {{ year }}</h2>
+        <a href="{{ url_for('event_calendar', year=next_year, month=next_month) }}"><button>&gt;</button></a>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-name">Sun</div>
+        <div class="cal-day-name">Mon</div>
+        <div class="cal-day-name">Tue</div>
+        <div class="cal-day-name">Wed</div>
+        <div class="cal-day-name">Thu</div>
+        <div class="cal-day-name">Fri</div>
+        <div class="cal-day-name">Sat</div>
+
+        {% for week in weeks %}
+          {% for day in week %}
+            {% if day == 0 %}
+              <div class="cal-day empty"></div>
+            {% elif day == today.day and month == today.month and year == today.year %}
+              <a class="cal-day today" href="/eventCalendar/{{ year }}/{{ month }}/{{ day }}">{{ day }}</a>
+            {% else %}
+              <a class="cal-day" href="/eventCalendar/{{ year }}/{{ month }}/{{ day }}">{{ day }}</a>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class = "footer"><p>Footer</p></div>
+</div>
+
+</body>
+</html>
+
+
+
+

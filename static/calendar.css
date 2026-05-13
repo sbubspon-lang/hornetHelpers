@@ -1,0 +1,93 @@
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.container {
+  display: grid;
+  grid-template-areas:
+  "header header"
+  "menu content"
+  "footer footer";
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: auto 1fr auto;
+  gap: 1px;
+  background-color: green;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.container div {
+  background-color: rgb(1, 53, 31);
+  padding: 50px;
+}
+
+.container div.header {
+  grid-area: header;
+  text-align: center;
+}
+
+.container div.menu {
+  grid-area: menu;
+}
+
+.container div.content {
+  grid-area: content;
+  padding: 0;
+}
+
+.calendar {
+  padding: 16px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-left: 1px solid white;
+  border-top: 1px solid white;
+}
+
+.cal-day-name, .cal-day {
+  border-right: 1px solid white;
+  border-bottom: 1px solid white;
+  padding: 5px;
+  min-height: 55px;
+  color: white;
+  text-decoration: none;
+  display: block;
+}
+
+.cal-day:hover {
+  background-color: rgba(255,255,255,0.15);
+  cursor: pointer;
+}
+
+.cal-day-name {
+  min-height: unset;
+  text-align: center;
+  font-weight: bold;
+  background-color: rgba(0,0,0,0.3);
+}
+
+.cal-day.empty {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.cal-day.today {
+  background-color: rgba(255,255,255,0.2);
+  font-weight: bold;
+}
+
+.container div.footer {
+  grid-area: footer;
+}

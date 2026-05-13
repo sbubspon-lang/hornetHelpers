@@ -428,3 +428,14 @@ if __name__ == "__main__":
     if not SECRET_KEY or not ADMIN_REGISTRATION_PIN or not ORGANIZER_REGISTRATION_PIN:
         raise ValueError("SECRET_KEY, ADMIN_REGISTRATION_PIN and ORGANIZER_REGISTRATION_PIN must be set in environment variables")
     app.run(debug=True)
+
+@app.route("/eventCalendar")
+def event_calendar():
+    from eventCalendar import get_calendar_data
+    today = datetime.today()
+    year = request.args.get("year", today.year, type=int)
+    month = request.args.get("month", today.month, type=int)
+
+    data = get_calendar_data(year, month)
+
+    return render_template("eventCalendar.html", today=today, **data)

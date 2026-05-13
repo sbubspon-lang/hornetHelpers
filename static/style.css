@@ -79,6 +79,7 @@ html, body {
     width: auto;
     text-align: center;
     z-index: 5;
+    transition: opacity 0.5s ease;
 }
 
 .flash-error {

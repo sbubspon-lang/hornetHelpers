@@ -77,6 +77,101 @@ def admin_home():
     return render_template("admin_home.html", user=user)
 
 
+@app.route("/events/new", methods=["GET", "POST"])
+def new_event():
+    username = get_current_username()
+    if not username:
+        return redirect(url_for("acc_login"))
+
+    user = repo.find_user(username)
+    if user.account_type not in {"Organizer", "Admin"}:
+        flash("Only organizers and admins can create events.")
+        return redirect(url_for("homepage"))
+
+    if request.method == "POST":
+        title = request.form["title"].strip()
+        description = request.form["description"].strip()
+        location = request.form["location"].strip()
+        event_date = request.form["event_date"].strip()
+        start_time = request.form["start_time"].strip()
+        end_date = request.form.get("end_date", "").strip()
+        end_time = request.form.get("end_time", "").strip()
+
+        if not title or not description or not location or not event_date or not start_time:
+            flash("Please fill in all required event fields.")
+            return redirect(url_for("new_event"))
+
+        try:
+            start_datetime = datetime.fromisoformat(f"{event_date}T{start_time}")
+        except ValueError:
+            flash("Invalid start date or time format.")
+            return redirect(url_for("new_event"))
+
+        if end_date and end_time:
+            try:
+                end_datetime = datetime.fromisoformat(f"{end_date}T{end_time}")
+            except ValueError:
+                flash("Invalid end date or time format.")
+                return redirect(url_for("new_event"))
+        else:
+            end_datetime = start_datetime + timedelta(hours=1)
+
+        if end_datetime <= start_datetime:
+            flash("Event end time must be after the start time.")
+            return redirect(url_for("new_event"))
+
+        organization_name = user.organization_name if user.account_type == "Organizer" else ""
+        success, message = repo.add_event(
+            title,
+            description,
+            location,
+            start_datetime.isoformat(timespec="minutes"),
+            end_datetime.isoformat(timespec="minutes"),
+            user.username,
+            user.account_type,
+            organization_name
+        )
+
+        if success:
+            flash(message)
+            if user.account_type == "Admin":
+                return redirect(url_for("admin_home"))
+            return redirect(url_for("organizer_home"))
+
+        flash(message)
+        return redirect(url_for("new_event"))
+
+    return render_template("new_event.html", user=user)
+
+
+@app.route("/events")
+def all_events():
+    username = get_current_username()
+    if not username:
+        return redirect(url_for("acc_login"))
+
+    user = repo.find_user(username)
+    events = repo.list_upcoming_events()
+    return render_template("all_events.html", user=user, events=events)
+
+
+@app.route("/events/my")
+def my_events():
+    username = get_current_username()
+    if not username:
+        return redirect(url_for("acc_login"))
+
+    user = repo.find_user(username)
+    if user.account_type == "Organizer":
+        events = repo.list_events_by_organization(user.organization_name)
+    elif user.account_type == "Admin":
+        events = repo.list_events_by_creator(user.username)
+    else:
+        events = []
+
+    return render_template("my_events.html", user=user, events=events)
+
+
 @app.route("/acc_login", methods=["GET", "POST"])
 def acc_login():
     if request.method == "POST":

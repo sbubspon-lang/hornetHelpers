@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="landing-page new-event-page">
+        <a href="{% if user.account_type == 'Admin' %}{{ url_for('admin_home') }}{% elif user.account_type == 'Organizer' %}{{ url_for('organizer_home') }}{% else %}{{ url_for('homepage') }}{% endif %}">
+            <div class="event-logo"></div>
+        </a>
+
+        <h1>Create New Event</h1>
+
+        <form method="post" class="form-container">
+            <label for="title">Event Title</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" required></textarea>
+
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" required>
+
+            <label for="event_date">Start Date</label>
+            <input type="date" id="event_date" name="event_date" required>
+
+            <label for="start_time">Start Time</label>
+            <input type="time" id="start_time" name="start_time" required>
+
+            <label for="end_date">End Date</label>
+            <input type="date" id="end_date" name="end_date">
+
+            <label for="end_time">End Time</label>
+            <input type="time" id="end_time" name="end_time">
+
+            <button type="submit" class="signup-btn">Submit Event</button>
+        </form>
+    </div>
+{% endblock %}
+

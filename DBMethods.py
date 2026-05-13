@@ -1,5 +1,6 @@
 import sqlite3
 import re
+from datetime import datetime
 from typing import List, Optional
 
 
@@ -23,6 +24,21 @@ class User:
         self.lockout_until = lockout_until
         self.reset_token = reset_token
         self.reset_token_expiry = reset_token_expiry
+
+# Event class to organize our event data. 
+class Event:
+    def __init__(self, id: int, title: str, description: str, location: str,
+                 start_datetime: str, end_datetime: str, created_by_username: str,
+                 created_by_account_type: str, organization_name: str):
+        self.id = id
+        self.title = title
+        self.description = description
+        self.location = location
+        self.start_datetime = start_datetime
+        self.end_datetime = end_datetime
+        self.created_by_username = created_by_username
+        self.created_by_account_type = created_by_account_type
+        self.organization_name = organization_name
 
 
 class UserRepository:
@@ -73,6 +89,21 @@ class UserRepository:
                     lockout_until TEXT DEFAULT NULL,
                     reset_token TEXT DEFAULT NULL,
                     reset_token_expiry TEXT DEFAULT NULL
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    start_datetime TEXT NOT NULL,
+                    end_datetime TEXT NOT NULL,
+                    created_by_username TEXT NOT NULL,
+                    created_by_account_type TEXT NOT NULL,
+                    organization_name TEXT NOT NULL DEFAULT '',
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
             """)
 
@@ -307,6 +338,96 @@ class UserRepository:
                 WHERE id = ?
             """, (user_id,))
             conn.commit()
+
+    # Method for creating an event
+    def add_event(self, title, description, location, start_datetime, end_datetime,
+                  created_by_username, created_by_account_type, organization_name=""):
+        if not re.match(r"^.+$", title):
+            return False, "Title is required."
+        if not re.match(r"^.+$", description):
+            return False, "Description is required."
+        if not re.match(r"^.+$", location):
+            return False, "Location is required."
+        if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$", start_datetime):
+            return False, "Invalid start date/time format."
+        if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$", end_datetime):
+            return False, "Invalid end date/time format."
+
+        try:
+            with self._connect() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id
+                    FROM events
+                    WHERE title = ?
+                      AND location = ?
+                      AND start_datetime = ?
+                """, (title, location, start_datetime))
+                if cursor.fetchone():
+                    return False, "An event with the same title, location, and start date/time already exists."
+
+                cursor.execute("""
+                    INSERT INTO events (
+                        title, description, location,
+                        start_datetime, end_datetime,
+                        created_by_username, created_by_account_type, organization_name
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    title, description, location,
+                    start_datetime, end_datetime,
+                    created_by_username, created_by_account_type, organization_name
+                ))
+                conn.commit()
+            return True, "Event created successfully."
+        except Exception as e:
+            return False, f"Error: {e}"
+
+    #Method for listing all events in order of start date/time.
+    def list_upcoming_events(self):
+        now = datetime.now().isoformat(timespec='minutes')
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, title, description, location,
+                    start_datetime, end_datetime,
+                    created_by_username, created_by_account_type, organization_name
+                FROM events
+                WHERE start_datetime >= ?
+                ORDER BY start_datetime ASC
+            """, (now,))
+            rows = cursor.fetchall()
+            return [Event(*row) for row in rows]
+
+    # Method to list all events created by a specific user in order of start date/time as well
+    def list_events_by_creator(self, username):
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, title, description, location,
+                    start_datetime, end_datetime,
+                    created_by_username, created_by_account_type, organization_name
+                FROM events
+                WHERE created_by_username = ?
+                ORDER BY start_datetime ASC
+            """, (username,))
+            rows = cursor.fetchall()
+            return [Event(*row) for row in rows]
+
+    # Method to list all events created by a specific organization the user is a part of.
+    def list_events_by_organization(self, organization_name):
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, title, description, location,
+                    start_datetime, end_datetime,
+                    created_by_username, created_by_account_type, organization_name
+                FROM events
+                WHERE organization_name = ?
+                ORDER BY start_datetime ASC
+            """, (organization_name,))
+            rows = cursor.fetchall()
+            return [Event(*row) for row in rows]
 
     def delete_user(self, username):
         with self._connect() as conn:

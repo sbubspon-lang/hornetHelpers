@@ -2,14 +2,20 @@
 
 {% block content %}
     <div class="landing-page">
-        <h1>Welcome, {{ user.full_name }}!</h1>
-        <p>Your account type is <strong>{{ user.account_type }}</strong>.</p>
-        <h2>Organizer Dashboard</h2>
-        <ul>
-            <li>Create and manage events.</li>
-            <li>View volunteer registrations.</li>
-            <li>Update event details.</li>
-        </ul>
-        <a href="{{ url_for('account') }}">Go to My Account</a>
+        <a class="dashboard-logo-btn" href="{{ url_for('organizer_home') }}" aria-label="Hornet Helpers home"></a>
+
+        <div class="dashboard-copy">
+            <h1>Welcome, {{ user.full_name }}!</h1>
+            <p>Your account type is <strong>{{ user.account_type }}</strong>.</p>
+            <h2>Organizer Dashboard</h2>
+        </div>
+
+        <div class="button-group">
+            <a class="action-btn" href="{{ url_for('new_event') }}">Create New Event</a>
+            <a class="action-btn" href="{{ url_for('all_events') }}">View All Events</a>
+            <a class="action-btn" href="{{ url_for('my_events') }}">View My Organization's Events</a>
+        </div>
+
+        <a class="account-link" href="{{ url_for('account') }}">Go to My Account</a>
     </div>
 {% endblock %}

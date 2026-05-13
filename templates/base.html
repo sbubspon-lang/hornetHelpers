@@ -2,9 +2,18 @@
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}">
+    {% if user %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    {% endif %}
 </head>
 <body>
     <div class="background"></div>
+
+    {% if user %}
+        <div class="top-nav">
+            <a class="logout-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    {% endif %}
 
     <div class="centerbox">
         {% with messages = get_flashed_messages() %}
